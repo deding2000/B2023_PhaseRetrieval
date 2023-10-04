@@ -1,5 +1,6 @@
 import numpy as np
-from fastapy.fastapy import Fasta
+#from fastapy.fastapy import Fasta
+from fasta_copy import Fasta
 import matplotlib.pyplot as plt
 
 def solvePhaseMax(A,b0,x0): #Not At and opts
