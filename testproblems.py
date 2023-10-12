@@ -28,12 +28,14 @@ def PhaseMax(n, A, x_hat,x_test):
     prob.solve()
 
     sol = x.value
-    alpha = (np.conj(sol.T)@x_test)/abs((np.conj(sol.T)@x_test))
+    #alpha = ((sol.T)@x_test)/abs(((sol.T)@x_test))
+    alpha = ((sol.T)@x_test)/((sol.T)@sol)
     sol = alpha * sol
     
-    x_norm = cp.norm(sol,p=2).value
+    x_norm = np.linalg.norm(x_test)
     #res = cp.multiply(cp.norm(sol - x_test, p=2).value,1/(x_norm))
-    res = ((cp.norm(sol - x_test, p=2).value)**2)*(1/(x_norm)**2)
+    #res = ((np.linalg.norm(x_test - sol))**2)*(1/(x_norm)**2)
+    res = ((np.linalg.norm(x_test-sol)))*(1/(x_norm))
 
     return sol, res, prob.value
 
@@ -93,8 +95,8 @@ def init_angle(xtrue, theta):
 
     xhat = xtrue + d * np.tan(theta)
     xhat = xhat/np.linalg.norm(xhat)*np.linalg.norm(xtrue)
-    return xhat
 
+    return xhat
 
 
 def gauss1D(iscomplex, n, m):
@@ -104,32 +106,32 @@ def gauss1D(iscomplex, n, m):
 
     return A, xtrue
 
-def gauss_phaseplot(iscomplex, num_trials, n):
+def gauss_phaseplot(iscomplex, num_trials, n, theta):
     
-    ratio = np.array([1, 2, 2.25, 2.5, 2.75, 3, 3.25, 3.5, 3.75, 4, 5, 6])
+    ratio = np.array([1.1, 1.5, 2, 2.25, 2.5, 2.75, 3, 3.25, 3.5, 3.75, 4, 5, 6])
     num_ratio = len(ratio)
 
-    results = np.zeros(num_ratio, num_trials)
+    results = np.zeros((num_ratio, num_trials))
 
     for p in range(num_ratio):
+
         for q in range(num_trials):
-           
-           A, xtrue = gauss1D(iscomplex, n, ratio[p]*n)
-
-        
-           PhaseMax(n, A, xhat, xtrue)
-
-
+            m = np.round(ratio[p]*n).astype(int)
             
-         
+            A, xtrue = gauss1D(iscomplex, n, m)
 
-x = [1,2,3]
-xhat = init_angle(x, np.pi/4)
-print(xhat)
+            xhat = init_angle(xtrue, theta)
 
+            sol, res, _ = PhaseMax(n, A, xhat, xtrue)
 
+            results[p,q] = res
+    
+    final_results = np.mean(results, axis=1)
 
-testPhasemax()
+    plt.plot(ratio, final_results)
+
+gauss_phaseplot(True, num_trials = 5, n = 100, theta = np.pi/4)            
+
 # small test
 # n = 10
 # m = 80
@@ -177,6 +179,9 @@ def basis_pursuit_test():
 
     plt.plot(ratios, nbsucceded*100/simulations)   
     plt.show() 
+
+
+# %%
 
 
 # %%
