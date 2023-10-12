@@ -38,6 +38,7 @@ def PhaseMax(n, A, x_hat,x_test):
     return sol, res, prob.value
 
 def testPhasemax():
+
     n = 10
     ratios = np.array([3,4,5,6,7,8,9,10,11,12])
     ms = ratios*n
@@ -82,6 +83,51 @@ def testPhasemax():
 
     #plt.plot(ratios, probs*100)   
     #plt.show()
+
+def init_angle(xtrue, theta):
+    n = len(xtrue)
+    d = np.random.rand(n)
+
+    d = d - (d.T @ xtrue)/np.linalg.norm(xtrue)**2 * xtrue
+    d = d/np.linalg.norm(d) * np.linalg.norm(xtrue)
+
+    xhat = xtrue + d * np.tan(theta)
+    xhat = xhat/np.linalg.norm(xhat)*np.linalg.norm(xtrue)
+    return xhat
+
+
+
+def gauss1D(iscomplex, n, m):
+    xtrue = np.random.randn(n) + iscomplex * 1j * np.random.randn(n)
+
+    A = np.random.rand(m,n) + iscomplex * 1j * np.random.rand(m,n)
+
+    return A, xtrue
+
+def gauss_phaseplot(iscomplex, num_trials, n):
+    
+    ratio = np.array([1, 2, 2.25, 2.5, 2.75, 3, 3.25, 3.5, 3.75, 4, 5, 6])
+    num_ratio = len(ratio)
+
+    results = np.zeros(num_ratio, num_trials)
+
+    for p in range(num_ratio):
+        for q in range(num_trials):
+           
+           A, xtrue = gauss1D(iscomplex, n, ratio[p]*n)
+
+        
+           PhaseMax(n, A, xhat, xtrue)
+
+
+            
+         
+
+x = [1,2,3]
+xhat = init_angle(x, np.pi/4)
+print(xhat)
+
+
 
 testPhasemax()
 # small test
