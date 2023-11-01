@@ -3,40 +3,38 @@ import cvxpy as cp
 import numpy as np
 import matplotlib.pyplot as plt
 
+np.random.seed(4)
+
 def pol2cart(rho, phi):
     x = rho * np.cos(phi)
     y = rho * np.sin(phi)
     return(x, y)
 
-def basis_pursuit(m,A,z_true):
-    x_hat = (A @ z_true).T
+def basis_pursuit(m,D,x_hat):
     z = cp.Variable(m, complex=True)
-    prob = cp.Problem(cp.Minimize(cp.norm(z, 1)),[A @ z == x_hat])
+    prob = cp.Problem(cp.Minimize(cp.norm(z, 1)),[D @ z == x_hat])
     prob.solve()
     sol = z.value
-    z_norm = cp.norm(sol,p=2).value
-    res = ((cp.norm(z_true - sol, p=2).value)**2)*(1/(z_norm)**2)
-    return sol, res, prob.value 
+    dual_sol = prob.constraints[0].dual_value
+    return sol, dual_sol
 
 def PhaseMax(n, A, x_hat,x_test):
     # Generate data.
     b = abs(A@x_test)
     # Define and solve the CVXPY problem.
     x = cp.Variable(n, complex=True)
-    prob = cp.Problem(cp.Maximize(cp.real(x_hat.T@ x)),[cp.norm(cp.multiply(A @ x,1/b), "inf") <= 1])
+    prob = cp.Problem(cp.Maximize(cp.real(np.conj(x_hat.T)@ x)),[cp.norm(cp.multiply(A @ x,1/b), "inf") <= 1])
 
     prob.solve()
 
     sol = x.value
-    #alpha = ((sol.T)@x_test)/abs(((sol.T)@x_test))
-    alpha = ((sol.T)@x_test)/((sol.T)@sol)
-    sol = alpha * sol
-    
-    x_norm = np.linalg.norm(x_test)
+    #alpha = ((sol.T)@x_test)/abs(((sol.T)@x_test)) # modulus 1
+    #alpha = ((sol.T)@x_test)/((sol.T)@sol)
+    #sol = alpha * sol
     #res = cp.multiply(cp.norm(sol - x_test, p=2).value,1/(x_norm))
     #res = ((np.linalg.norm(x_test - sol))**2)*(1/(x_norm)**2)
-    res = ((np.linalg.norm(x_test-sol)))*(1/(x_norm))
-
+    #res = ((np.linalg.norm(x_test-sol)))/(np.linalg.norm(x_test))
+    res = np.mean(abs(sol)-abs(x_test))
     return sol, res, prob.value
 
 def testPhasemax():
@@ -98,7 +96,6 @@ def init_angle(xtrue, theta):
 
     return xhat
 
-
 def gauss1D(iscomplex, n, m):
     xtrue = np.random.randn(n) + iscomplex * 1j * np.random.randn(n)
 
@@ -108,7 +105,7 @@ def gauss1D(iscomplex, n, m):
 
 def gauss_phaseplot(iscomplex, num_trials, n, theta):
     
-    ratio = np.array([1.1, 1.5, 2, 2.25, 2.5, 2.75, 3, 3.25, 3.5, 3.75, 4, 5, 6])
+    ratio = np.array([1,3,5,7,9,11])
     num_ratio = len(ratio)
 
     results = np.zeros((num_ratio, num_trials))
@@ -119,18 +116,42 @@ def gauss_phaseplot(iscomplex, num_trials, n, theta):
             m = np.round(ratio[p]*n).astype(int)
             
             A, xtrue = gauss1D(iscomplex, n, m)
-
+            Astar = np.conj(A.T)
             xhat = init_angle(xtrue, theta)
+            B = np.diag(abs(A@xtrue))   
+            D = Astar@np.linalg.inv(B)
+            _, dual_sol = basis_pursuit(m,D,xhat)
+            alpha = ((dual_sol.T)@xtrue)/((dual_sol.T)@dual_sol)
+            dual_sol = alpha * dual_sol
+            #sol, res, _ = PhaseMax(n, A, xhat, xtrue)
 
-            sol, res, _ = PhaseMax(n, A, xhat, xtrue)
-
+            res = ((np.linalg.norm(xtrue-dual_sol)))/(np.linalg.norm(xtrue))
             results[p,q] = res
     
     final_results = np.mean(results, axis=1)
+    #print("error",final_results)
+    plt.plot(ratio,final_results)
+    # plt.plot(abs(xtrue)-abs(sol),'g')
+    # plt.plot(abs(sol),'r')
+    # plt.plot(abs(xtrue),'c')
+    plt.show()
 
-    plt.plot(ratio, final_results)
+gauss_phaseplot(True, num_trials = 10, n = 100, theta = np.pi/8)
+# n = 100
+# m = 800    
+# A, xtrue = gauss1D(True, n, m)
+# Astar = np.conj(A.T)
+# xhat = init_angle(xtrue, theta = np.pi/8)  
+# B = np.diag(abs(A@xtrue))   
+# D = Astar@np.linalg.inv(B)
+# sol, dual_sol = basis_pursuit(m,D,xhat)
+# alpha = ((dual_sol.T)@xtrue)/((dual_sol.T)@dual_sol)
+# print(alpha)
+# dual_sol = alpha * dual_sol
+# plt.plot(abs(dual_sol),'r')
+# plt.plot(abs(xtrue),'g')
 
-gauss_phaseplot(True, num_trials = 5, n = 100, theta = np.pi/4)            
+
 
 # small test
 # n = 10
