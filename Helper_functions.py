@@ -30,13 +30,13 @@ def init_angle(xtrue, theta):
 
     return xhat
 
-def PhaseMax(A, b, xhat,verbose):
+def PhaseMax(A, b, xhat,solver,verbose):
     # Define and solve the CVXPY problem.
     n = A.shape[1]
     m = A.shape[0]
     x = cp.Variable(n, complex=True)
     prob = cp.Problem(cp.Maximize(cp.real(inp(x,xhat))),[cp.norm(cp.multiply(A @ x,1/b), "inf") <= 1])
-    prob.solve(verbose=verbose)
+    prob.solve(verbose=verbose,solver=solver)
     return x.value
 
 def basis_pursuit(m,A,xhat):
