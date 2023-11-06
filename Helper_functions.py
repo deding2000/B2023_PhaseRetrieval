@@ -2,6 +2,7 @@ import cvxpy as cp
 import numpy as np
 import matplotlib.pyplot as plt
 from numpy import linalg as la
+import clarabel
 
 def save_points(x,y,path):
     data = np.zeros((len(x),2))
@@ -18,6 +19,9 @@ def pol2cart(rho, phi):
 def inp(x,y):
     return x.T @ np.conjugate(y)
 
+def angle(x,y):
+    return np.arccos(np.real(inp(x,y))/(la.norm(x)*la.norm(y)))
+
 def init_angle(xtrue, theta):
     n = len(xtrue)
     d = np.random.rand(n)
@@ -30,13 +34,19 @@ def init_angle(xtrue, theta):
 
     return xhat
 
-def PhaseMax(A, b, xhat,solver,verbose):
+def PhaseMax(A, b, xhat,verbose):
     # Define and solve the CVXPY problem.
     n = A.shape[1]
     m = A.shape[0]
     x = cp.Variable(n, complex=True)
-    prob = cp.Problem(cp.Maximize(cp.real(inp(x,xhat))),[cp.norm(cp.multiply(A @ x,1/b), "inf") <= 1])
-    prob.solve(verbose=verbose,solver=solver)
+    constraints = []
+    for i in range(m):
+        constraints += [
+            cp.abs(A[i,:] @ x) <= b[i]
+        ]
+    prob = cp.Problem(cp.Maximize(cp.real(inp(x,xhat))),constraints)
+    #prob = cp.Problem(cp.Maximize(cp.real(inp(x,xhat))),[cp.norm(cp.multiply(A @ x,1/b), "inf") <= 1])
+    prob.solve(verbose=verbose,solver=cp.CLARABEL)
     return x.value
 
 def basis_pursuit(m,A,xhat):
@@ -56,10 +66,10 @@ def pcover1(m,n,angle):
 
 class GaussData:
   def __init__(self, n, m, isComplex):
-    self.x0 = np.random.randn(n) + isComplex*1j*np.random.randn(n)
+    self.x0 = np.random.normal(0,1,n) + isComplex*1j*np.random.normal(0,1,n)
     self.A = np.zeros((m,n),dtype = 'complex_')
     for i in range(n):
-        self.A[:,i] = np.random.rand(m) + isComplex*1j*np.random.randn(m)
+        self.A[:,i] = np.random.normal(0,1,m) + isComplex*1j*np.random.normal(0,1,m)
         self.A[:,i] = self.A[:,i] / la.norm(self.A[:,i])
     self.b = abs(self.A@self.x0)
 

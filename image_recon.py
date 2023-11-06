@@ -1,4 +1,4 @@
-
+#%%
 import numpy as np
 from Helper_functions import *
 from numpy import linalg as la
@@ -18,7 +18,6 @@ class image_recon():
     def fourier_matrix(self):
         m = self.n*self.num_masks
         DFT = np.fft.fft(np.eye(m.astype(int)))
-        
         A = DFT[:,np.random.choice(DFT.shape[0], self.n, replace=False)]
         return A
 
@@ -28,7 +27,7 @@ class image_recon():
         xhat = init_angle(self.x0, angle)
         x = cp.Variable(self.n, complex=True)
         prob = cp.Problem(cp.Maximize(cp.real(inp(x,xhat))),[cp.norm(cp.multiply(A @ x,1/b), "inf") <= 1])
-        prob.solve(solver="ECOS")
+        prob.solve(solver=cp.CLARABEL)
 
         return x.value
 
@@ -39,21 +38,25 @@ class image_recon():
         return error
     
 n = 100
-m = np.array([280,290,300,310,320,350,400])
+m = np.array([100,200,250,275,300,350,400,450,500])
 success = 1e-5
-repeats = 10
-nbsucceded = np.zeros(len(m))
-#x0 = np.random.randint(2,size = (n,n))
-for i, m1 in enumerate(m):
-        for j in range(repeats):
-            x0 = np.random.random(n) + 1j*np.random.random(n)
-            im_class = image_recon(x0,m1/100)
-            xval = im_class.phasemax(angle = np.pi*180/25)
-            error = im_class.error(xval)
-            if error < success:
-                    nbsucceded[i] += 1
-print( nbsucceded/repeats*100)
+repeats = 20
+angles = np.pi/180*np.array([25,36,45])
+nbsucceded = np.zeros((len(m), len(angles)))
+for k, beta in enumerate(angles):
+    for i, m1 in enumerate(m):
+            for j in range(repeats):
+                x0 = np.random.random(n) + 1j*np.random.random(n)
+                im_class = image_recon(x0,m1/100)
+                xval = im_class.phasemax(angle = beta)
+                error = im_class.error(xval)
+                if error < success:
+                        nbsucceded[i,k] += 1
 
+plt.plot(m, nbsucceded[:,0]*100/repeats,'r')
+plt.plot(m, nbsucceded[:,1]*100/repeats,'g')  
+plt.plot(m, nbsucceded[:,2]*100/repeats,'b')
+plt.show() 
 
 
     # def fouriertran(self, x):
@@ -71,3 +74,4 @@ print( nbsucceded/repeats*100)
     #     else:
     #         measurements_ret = measurements.ravel()
     #     return measurements_ret
+# %%
