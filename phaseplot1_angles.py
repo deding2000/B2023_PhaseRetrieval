@@ -3,16 +3,16 @@
 import numpy as np
 from numpy import linalg as la
 from Helper_functions import *
-import clarabel
+#import clarabel
 
 # solve problem
 # constants
 np.random.seed(65)
 n = 100
-m = np.array([200,300,400,450,500,550,600,800,900,1000])
+m = np.array([300,400,450,500,550,600,800,900,1000])
 angles = np.pi/180*np.array([25,36,45])
 success = 1e-5
-repeats = 20
+repeats = 10
 nbsucceded = np.zeros((len(m), len(angles)))
 
 #%%

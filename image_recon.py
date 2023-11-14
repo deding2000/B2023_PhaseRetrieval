@@ -27,7 +27,7 @@ class image_recon():
         xhat = init_angle(self.x0, angle)
         x = cp.Variable(self.n, complex=True)
         prob = cp.Problem(cp.Maximize(cp.real(inp(x,xhat))),[cp.norm(cp.multiply(A @ x,1/b), "inf") <= 1])
-        prob.solve(solver=cp.CLARABEL)
+        prob.solve(solver="ECOS")
 
         return x.value
 
@@ -38,15 +38,15 @@ class image_recon():
         return error
     
 n = 100
-m = np.array([100,200,250,275,300,350,400,450,500])
+m = np.array([500,550,600,650,700,750,800])
 success = 1e-5
 repeats = 20
-angles = np.pi/180*np.array([25,36,45])
+angles = np.pi/180*np.array([45])
 nbsucceded = np.zeros((len(m), len(angles)))
 for k, beta in enumerate(angles):
     for i, m1 in enumerate(m):
             for j in range(repeats):
-                x0 = np.random.random(n) + 1j*np.random.random(n)
+                x0 = np.random.normal(0,1,n) + 1j*np.random.normal(0,1,n)
                 im_class = image_recon(x0,m1/100)
                 xval = im_class.phasemax(angle = beta)
                 error = im_class.error(xval)
@@ -54,9 +54,19 @@ for k, beta in enumerate(angles):
                         nbsucceded[i,k] += 1
 
 plt.plot(m, nbsucceded[:,0]*100/repeats,'r')
-plt.plot(m, nbsucceded[:,1]*100/repeats,'g')  
-plt.plot(m, nbsucceded[:,2]*100/repeats,'b')
+# plt.plot(m, nbsucceded[:,1]*100/repeats,'g')  
+# plt.plot(m, nbsucceded[:,2]*100/repeats,'b')
 plt.show() 
+
+
+#%%
+# x = np.array(m)
+# beta25 = np.array(nbsucceded[:,0]*100/repeats)
+# save_points(x,beta25,'Data/fourier_beta25_n100.txt')
+# beta36 = np.array(nbsucceded[:,1]*100/repeats)
+# save_points(x,beta36,'Data/fourier_beta36_n100.txt')
+# beta45 = np.array(nbsucceded[:,2]*100/repeats)
+# save_points(x,beta45,'Data/fourier_beta45_n100.txt')
 
 
     # def fouriertran(self, x):

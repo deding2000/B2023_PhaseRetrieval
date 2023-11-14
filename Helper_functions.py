@@ -2,7 +2,7 @@ import cvxpy as cp
 import numpy as np
 import matplotlib.pyplot as plt
 from numpy import linalg as la
-import clarabel
+#import clarabel
 
 def save_points(x,y,path):
     data = np.zeros((len(x),2))
@@ -24,7 +24,7 @@ def angle(x,y):
 
 def init_angle(xtrue, theta):
     n = len(xtrue)
-    d = np.random.rand(n)
+    d = np.random.normal(0,1,n)
 
     d = d - (d.T @ xtrue)/np.linalg.norm(xtrue)**2 * xtrue
     d = d/np.linalg.norm(d) * np.linalg.norm(xtrue)
@@ -34,19 +34,13 @@ def init_angle(xtrue, theta):
 
     return xhat
 
-def PhaseMax(A, b, xhat,verbose):
+def PhaseMax(A, b, xhat,verbose, isComplex):
     # Define and solve the CVXPY problem.
     n = A.shape[1]
     m = A.shape[0]
-    x = cp.Variable(n, complex=True)
-    constraints = []
-    for i in range(m):
-        constraints += [
-            cp.abs(A[i,:] @ x) <= b[i]
-        ]
-    prob = cp.Problem(cp.Maximize(cp.real(inp(x,xhat))),constraints)
-    #prob = cp.Problem(cp.Maximize(cp.real(inp(x,xhat))),[cp.norm(cp.multiply(A @ x,1/b), "inf") <= 1])
-    prob.solve(verbose=verbose,solver=cp.CLARABEL)
+    x = cp.Variable(n, complex=isComplex)
+    prob = cp.Problem(cp.Maximize(cp.real(inp(x,xhat))),[cp.norm(cp.multiply(A @ x,1/b), "inf") <= 1])
+    prob.solve(verbose=verbose,solver="ECOS")
     return x.value
 
 def basis_pursuit(m,A,xhat):
@@ -70,6 +64,6 @@ class GaussData:
     self.A = np.zeros((m,n),dtype = 'complex_')
     for i in range(n):
         self.A[:,i] = np.random.normal(0,1,m) + isComplex*1j*np.random.normal(0,1,m)
-        self.A[:,i] = self.A[:,i] / la.norm(self.A[:,i])
+        #self.A[:,i] = self.A[:,i] / la.norm(self.A[:,i])
     self.b = abs(self.A@self.x0)
 
