@@ -48,19 +48,27 @@ def basis_pursuit(m,D,xhat):
     prob = cp.Problem(cp.Minimize(cp.norm(z, 1)),[D @ z == xhat])
     prob.solve()
     sol = z.value
-    dual_sol = prob.constraints[0].dual_value
-    return sol, dual_sol 
+    #dual_sol = prob.constraints[0].dual_value
+    return sol
 
 def PhaseLift(A,b,verbose, isComplex):
     n = A.shape[1]
     m = A.shape[0]
-    X = cp.Variable((n,n), symmetric=True)
+    if isComplex:
+        X = cp.Variable((n,n), hermitian=True)
+    else:
+        X = cp.Variable((n,n), symmetric=True)
     constraints = [X >> 0]
     constraints += [
     inp(X @ A[i,:],A[i,:]) == b[i]**2 for i in range(m) ]
     prob = cp.Problem(cp.Minimize(cp.trace(X)),constraints)
     prob.solve(verbose=verbose)
-    return X.value
+    if isComplex:
+        U, S, Vh = np.linalg.svd(X.value, full_matrices=False,hermitian=True)
+    else:
+         U, S, Vh = np.linalg.svd(X.value, full_matrices=False,symmetric=True)
+    sol = Vh[0,:]*np.sqrt(S[0])
+    return sol
 
 def pcover1(m,n,angle):
    alpha = 1- (2/np.pi)*angle
