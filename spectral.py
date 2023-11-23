@@ -1,4 +1,4 @@
-#%%
+
 from scipy import linalg as la
 import numpy as np
 from Helper_functions import *
@@ -33,32 +33,30 @@ def spectral_initializer(A,b,n,m, truncate = True, isScaled = False, optimal = F
     
     return largest_eigenvector
 
-ns = [5]
-m = 2
-error = np.zeros(len(ns))
-error_trunc = np.zeros(len(ns))
-error_opt = np.zeros(len(ns))
-for i,n in enumerate(ns):
-    m = 6*n
-    Data = GaussData(n,m,True)
-    Data.b += np.random.normal(0,0.1,m)
-    xhat_trunc = spectral_initializer(Data.A,Data.b,n,m, truncate=True, isScaled=False, optimal = False)
-    xhat = spectral_initializer(Data.A,Data.b,n,m, truncate=False, isScaled=False, optimal = False)
-    xhat_opt = spectral_initializer(Data.A,Data.b,n,m, truncate=False, isScaled=False, optimal = True)
-    error[i] = la.norm(Data.x0-xhat)**2/la.norm(Data.x0)**2 
-    error_trunc[i] = la.norm(Data.x0-xhat_trunc)**2/la.norm(Data.x0)**2 
-    error_opt[i] = la.norm(Data.x0-xhat_opt)**2/la.norm(Data.x0)**2   
-print(f"error: {error}, error_trunc: {error_trunc}")
-plt.plot(ns,error)
-plt.plot(ns,error_trunc)
-plt.plot(ns,error_opt)
-plt.legend(["error", "error_trunc", "error_opt"])
-plt.xlabel("n")
-plt.ylabel("error")
-plt.show()
+# ns = [5]
+# m = 2
+# error = np.zeros(len(ns))
+# error_trunc = np.zeros(len(ns))
+# error_opt = np.zeros(len(ns))
+# for i,n in enumerate(ns):
+#     m = 6*n
+#     Data = GaussData(n,m,True)
+#     Data.b += np.random.normal(0,0.1,m)
+#     xhat_trunc = spectral_initializer(Data.A,Data.b,n,m, truncate=True, isScaled=False, optimal = False)
+#     xhat = spectral_initializer(Data.A,Data.b,n,m, truncate=False, isScaled=False, optimal = False)
+#     xhat_opt = spectral_initializer(Data.A,Data.b,n,m, truncate=False, isScaled=False, optimal = True)
+#     error[i] = la.norm(Data.x0-xhat)**2/la.norm(Data.x0)**2 
+#     error_trunc[i] = la.norm(Data.x0-xhat_trunc)**2/la.norm(Data.x0)**2 
+#     error_opt[i] = la.norm(Data.x0-xhat_opt)**2/la.norm(Data.x0)**2   
+# print(f"error: {error}, error_trunc: {error_trunc}")
+# plt.plot(ns,error)
+# plt.plot(ns,error_trunc)
+# plt.plot(ns,error_opt)
+# plt.legend(["error", "error_trunc", "error_opt"])
+# plt.xlabel("n")
+# plt.ylabel("error")
+# plt.show()
 
-
-#%%
 n = 100
 #n = 10
 #ms = [60]

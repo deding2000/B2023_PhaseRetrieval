@@ -20,7 +20,9 @@ def inp(x,y):
     return x.T @ np.conjugate(y)
 
 def angle(x,y):
-    return np.arccos(np.real(inp(x,y))/(la.norm(x)*la.norm(y)))
+    temp =  np.real(inp(x,y))/(la.norm(x)*la.norm(y))
+    temp = np.clip(temp, -1, 1) # to avoid numerical errors
+    return np.arccos(temp)
 
 def init_angle(xtrue, theta):
     n = len(xtrue)
@@ -34,7 +36,7 @@ def init_angle(xtrue, theta):
 
     return xhat
 
-def PhaseMax(A, b, xhat,verbose, isComplex):
+def PhaseMax(A, b, xhat,verbose = False, isComplex = True):
     # Define and solve the CVXPY problem.
     n = A.shape[1]
     m = A.shape[0]
