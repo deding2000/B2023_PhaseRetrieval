@@ -8,9 +8,9 @@ from Helper_functions import *
 # solve problem
 # constants
 np.random.seed(65)
-n = 100
+n = 10
 m = np.array([300,400,450,500,550,600,800,900,1000])
-angles = np.pi/180*np.array([25,36,45])
+angles = np.pi/180*np.array([25])#,36,45])
 success = 1e-5
 repeats = 10
 nbsucceded = np.zeros((len(m), len(angles)))
@@ -21,7 +21,7 @@ for k, beta in enumerate(angles):
         Data = GaussData(n,m1,True)
         for j in range(repeats):
             xhat = init_angle(Data.x0, beta)
-            xsol = PhaseMax(Data.A, Data.b, xhat,verbose=False)
+            xsol = PhaseMax(Data.A, Data.b, xhat,isComplex =True, verbose=False)
             alpha = inp(Data.x0,xsol)/(inp(xsol,xsol))
             sol = alpha * xsol
             error = la.norm(Data.x0-sol)**2/la.norm(Data.x0)**2
@@ -29,8 +29,8 @@ for k, beta in enumerate(angles):
                         nbsucceded[i,k] += 1
 
 plt.plot(m, nbsucceded[:,0]*100/repeats,'r')
-plt.plot(m, nbsucceded[:,1]*100/repeats,'g')  
-plt.plot(m, nbsucceded[:,2]*100/repeats,'b')
+# plt.plot(m, nbsucceded[:,1]*100/repeats,'g')  
+# plt.plot(m, nbsucceded[:,2]*100/repeats,'b')
 plt.show() 
 #%%
 ################################ Save Data ####################################

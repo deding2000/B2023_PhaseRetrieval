@@ -43,13 +43,12 @@ def PhaseMax(A, b, xhat,verbose, isComplex):
     prob.solve(verbose=verbose,solver="ECOS")
     return x.value
 
-def basis_pursuit(m,D,xhat):
-    z = cp.Variable(m, complex=True)
+def basis_pursuit(m,D,xhat,verbose,isComplex):
+    z = cp.Variable(m, complex=isComplex)
     prob = cp.Problem(cp.Minimize(cp.norm(z, 1)),[D @ z == xhat])
-    prob.solve()
-    sol = z.value
+    prob.solve(verbose=verbose)
     #dual_sol = prob.constraints[0].dual_value
-    return sol
+    return z.value
 
 def PhaseLift(A,b,verbose, isComplex):
     n = A.shape[1]
