@@ -45,13 +45,32 @@ def PhaseMax(A, b, xhat,verbose = False, isComplex = True):
     prob.solve(verbose=verbose,solver="ECOS")
     return x.value
 
-def basis_pursuit(m,A,xhat):
+def basis_pursuit(m,D,xhat):
     z = cp.Variable(m, complex=True)
-    prob = cp.Problem(cp.Minimize(cp.norm(z, 1)),[A @ z == xhat])
+    prob = cp.Problem(cp.Minimize(cp.norm(z, 1)),[D @ z == xhat])
     prob.solve()
     sol = z.value
-    dual_sol = prob.constraints[0].dual_value
-    return sol, dual_sol 
+    #dual_sol = prob.constraints[0].dual_value
+    return sol
+
+def PhaseLift(A,b,verbose, isComplex):
+    n = A.shape[1]
+    m = A.shape[0]
+    if isComplex:
+        X = cp.Variable((n,n), hermitian=True)
+    else:
+        X = cp.Variable((n,n), symmetric=True)
+    constraints = [X >> 0]
+    constraints += [
+    inp(X @ A[i,:],A[i,:]) == b[i]**2 for i in range(m) ]
+    prob = cp.Problem(cp.Minimize(cp.trace(X)),constraints)
+    prob.solve(verbose=verbose)
+    if isComplex:
+        U, S, Vh = np.linalg.svd(X.value, full_matrices=False,hermitian=True)
+    else:
+         U, S, Vh = np.linalg.svd(X.value, full_matrices=False,symmetric=True)
+    sol = Vh[0,:]*np.sqrt(S[0])
+    return sol
 
 def pcover1(m,n,angle):
    alpha = 1- (2/np.pi)*angle
@@ -66,6 +85,5 @@ class GaussData:
     self.A = np.zeros((m,n),dtype = 'complex_')
     for i in range(n):
         self.A[:,i] = np.random.normal(0,1,m) + isComplex*1j*np.random.normal(0,1,m)
-        #self.A[:,i] = self.A[:,i] / la.norm(self.A[:,i])
+        self.A[:,i] = self.A[:,i] / la.norm(self.A[:,i])
     self.b = abs(self.A@self.x0)
-
