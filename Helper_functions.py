@@ -71,6 +71,26 @@ def PhaseLift(A,b,verbose, isComplex):
     sol = Vh[0,:]*np.sqrt(S[0])
     return sol
 
+def PhaseCut(A,b,verbose=False, isComplex=True):
+    n = A.shape[1]
+    m = A.shape[0]
+    M = np.diag(b)@(np.eye(m)-A@la.pinv(A))@np.diag(b)
+    if isComplex:
+        U = cp.Variable((m,m), hermitian=True)
+    else:
+        U = cp.Variable((m,m), symmetric=True)
+    constraints = [U >> 0]
+    constraints += [ cp.diag(U) == np.ones(m)
+   ]
+    if isComplex:
+        prob = cp.Problem(cp.Minimize(cp.real((cp.trace(U@M)))),constraints)
+    else:
+        prob = cp.Problem(cp.Minimize((cp.trace(U@M))),constraints)
+    prob.solve(verbose=verbose)
+    U, S, Vh = np.linalg.svd(U.value, full_matrices=False,hermitian=True)
+    sol = Vh[0,:]*np.sqrt(S[0])
+    return np.conjugate(sol)
+
 def pcover1(m,n,angle):
    alpha = 1- (2/np.pi)*angle
    if 4*n < m*alpha:
@@ -81,8 +101,14 @@ def pcover1(m,n,angle):
 class GaussData:
   def __init__(self, n, m, isComplex):
     self.x0 = np.random.normal(0,1,n) + isComplex*1j*np.random.normal(0,1,n)
-    self.A = np.zeros((m,n),dtype = 'complex_')
-    for i in range(n):
-        self.A[:,i] = np.random.normal(0,1,m) + isComplex*1j*np.random.normal(0,1,m)
-        self.A[:,i] = self.A[:,i] / la.norm(self.A[:,i])
+    if isComplex:
+        self.A = np.zeros((m,n),dtype = 'complex_')
+        for i in range(n):
+            self.A[:,i] = np.random.normal(0,1,m) + isComplex*1j*np.random.normal(0,1,m)
+            self.A[:,i] = self.A[:,i] / la.norm(self.A[:,i])
+    else:
+        self.A = np.zeros((m,n))
+        for i in range(n):
+            self.A[:,i] = np.random.normal(0,1,m)
+            self.A[:,i] = self.A[:,i] / la.norm(self.A[:,i])
     self.b = abs(self.A@self.x0)
