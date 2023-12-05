@@ -1,5 +1,7 @@
+#%%
 import scipy.io
 from Helper_functions import *
+import time
 def spectral_initializer(A,b,n,m, truncate = True, isScaled = False, optimal = False):
     mu = np.mean(b**2)
     if truncate:
@@ -29,24 +31,43 @@ def spectral_initializer(A,b,n,m, truncate = True, isScaled = False, optimal = F
     b0 = np.ones(m)
     
     return largest_eigenvector
-
-data = scipy.io.loadmat('bs.mat')
-b = data['bs']
-m = len(b)
-x = data['x'].ravel()
-
+#%%
+b = scipy.io.loadmat('Data/Proteindata/b_short.mat')
+b = b['bs']
+x = scipy.io.loadmat('Data/Proteindata/caffeine_true.mat')
+x = x['x'].ravel()
+n = len(x)
+idx_b = scipy.io.loadmat('Data/Proteindata/idx_bs.mat')
+idx_b = idx_b['idx_bs']
+filters = scipy.io.loadmat('Data/Proteindata/filter.mat')
+filters = filters['filters']
+#%%
+FFT1 = np.fft.fft(np.eye(n))
+FFT2 = FFT1 * np.diag(filters[0][1].ravel())
+A = np.concatenate((FFT1,FFT2))
+#%%
+idx_s = np.squeeze(idx_b)
+#%% choose a vectors
+A_s = A[:,idx_s.T]
+#%%
 #print(data['filters'][0][1].shape)
 #print(data.keys())
 #print(data['N'])
-n = len(x)
-m = n
-FFT = np.fft.fft(np.eye(m))
-A = FFT * np.diag(data['filters'][0][1].ravel())
 #A = FFT[:,np.random.choice(FFT.shape[0], n, replace=False)]
-b = np.abs(A@x)
+#b = np.abs(A@x)
+#%%
 #xhat = spectral_initializer(A, b,n,m)
-xhat = np.random.normal(0,1,n)
-sol = PhaseMax(A,b,xhat,isComplex=False, verbose = False)
+xhat = init_angle(x, np.pi/180*10)
+#%%
+
+#maybe a bit faster with BP
+# B = np.diag((b))
+# B1 = np.diag(1/(b))
+# D = np.conj((A).T)@B1
+start_time = time.time()
+sol = PhaseMax(A,b,xhat,isComplex=False, verbose = True)
+print(time.time() - start_time)
+#%%
 sol.reshape(n,n)
 plt.imshow(sol)
 plt.show()
