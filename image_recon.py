@@ -38,7 +38,7 @@ class image_recon():
         return error
     
 n = 100
-m = np.array([500,550,600,650,700,750,800])
+m = np.array([900])
 success = 1e-5
 repeats = 20
 angles = np.pi/180*np.array([45])
@@ -53,20 +53,20 @@ for k, beta in enumerate(angles):
                 if error < success:
                         nbsucceded[i,k] += 1
 
-plt.plot(m, nbsucceded[:,0]*100/repeats,'r')
-# plt.plot(m, nbsucceded[:,1]*100/repeats,'g')  
-# plt.plot(m, nbsucceded[:,2]*100/repeats,'b')
-plt.show() 
-
+# plt.plot(m, nbsucceded[:,0]*100/repeats,'r')
+# # plt.plot(m, nbsucceded[:,1]*100/repeats,'g')  
+# # plt.plot(m, nbsucceded[:,2]*100/repeats,'b')
+# plt.show() 
+print(nbsucceded[:,0]*100/repeats)
 
 #%%
-# x = np.array(m)
+x = np.array(m)
 # beta25 = np.array(nbsucceded[:,0]*100/repeats)
 # save_points(x,beta25,'Data/fourier_beta25_n100.txt')
 # beta36 = np.array(nbsucceded[:,1]*100/repeats)
 # save_points(x,beta36,'Data/fourier_beta36_n100.txt')
-# beta45 = np.array(nbsucceded[:,2]*100/repeats)
-# save_points(x,beta45,'Data/fourier_beta45_n100.txt')
+beta45 = np.array(nbsucceded[:,0]*100/repeats)
+save_points(x,beta45,'Data/fourier_beta45_n100.txt')
 
 
     # def fouriertran(self, x):
