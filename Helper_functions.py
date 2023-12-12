@@ -44,15 +44,15 @@ def PhaseMax(A, b, xhat,verbose = False, isComplex = True):
     prob = cp.Problem(cp.Maximize(cp.real(inp(x,xhat))),[cp.norm(cp.multiply(A @ x,1/b), "inf") <= 1])
     prob.solve(verbose=verbose,solver="ECOS")
     return x.value
-
-def basis_pursuit(m,D,xhat,verbose,isComplex):
+ 
+def basis_pursuit(m,D,xhat,verbose = False ,isComplex = True):
     z = cp.Variable(m, complex=isComplex)
     prob = cp.Problem(cp.Minimize(cp.norm(z, 1)),[D @ z == xhat])
     prob.solve(verbose=verbose)
     #dual_sol = prob.constraints[0].dual_value
     return z.value
 
-def PhaseLift(A,b,verbose, isComplex):
+def PhaseLift(A,b,verbose = False, isComplex = True):
     n = A.shape[1]
     m = A.shape[0]
     if isComplex:
@@ -90,6 +90,16 @@ def PhaseCut(A,b,verbose=False, isComplex=True):
     U, S, Vh = np.linalg.svd(U.value, full_matrices=False,hermitian=True)
     sol = Vh[0,:]*np.sqrt(S[0])
     return np.conjugate(sol)
+
+def PhaseLamp(A,b,xhat, k=10, epsilon = 10e-2, verbose=False, isComplex=True):
+    for i in range(k):
+        x = PhaseMax(A,b,xhat,verbose,isComplex)
+        if la.norm(x-xhat) < epsilon:
+            print("converged after",i,"iterations")
+            return x
+        xhat = x
+    print("did not converge")
+    return x
 
 def pcover1(m,n,angle):
    alpha = 1- (2/np.pi)*angle
