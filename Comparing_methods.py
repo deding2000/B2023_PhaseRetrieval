@@ -41,13 +41,14 @@ def spectral_initializer(A,b,n,m, truncate = True, isScaled = False, optimal = F
     return largest_eigenvector
 
 
-ratios =[3.25,3.50,3.75,4]#[1,1.25,1.50,1.75,2,2.25,2.50,2.75,3]#,3.25,3.5,3.75,4,4.25,4.50,4.75,5] # [3,4,5]
-n = 100 #50
+ratios = [1,2,3,4,5,6]
+n = 100 
 repeats = 10
 errors = {"PhaseMax": [], "PhaseLift": [], "BasisPursuit": [], "PhaseLamp": [], "PhaseCut":[]}
 for ratio in ratios:
     print(ratio)
     for i in range(repeats):
+        print(i)
         errorPM = 0
         errorPL = 0
         errorBP = 0
@@ -82,11 +83,11 @@ for ratio in ratios:
 
         ### PHASECUT
         x_PC= PhaseCut(Data.A, Data.b,verbose=False, isComplex=True)
-        xsol = la.lstsq(Data.A,B@zb,rcond=None)[0]
+        xsol = la.lstsq(Data.A,B@x_PC,rcond=None)[0]
         errorPC += error_cal(xsol)
 
         ### PHASELAMP
-        x_PLamp = PhaseLamp(Data.A,Data.b,xhat, k=10, epsilon = 10e-2,verbose=False, isComplex=True)
+        x_PLamp = PhaseLamp(Data.A,Data.b,xhat, k=10, epsilon = 10e-4,verbose=False, isComplex=True)
         errorPLamp += error_cal(x_PLamp)
 
     errors["PhaseMax"].append(errorPM/repeats)
@@ -95,16 +96,15 @@ for ratio in ratios:
     errors["PhaseCut"].append(errorPC/repeats)
     errors["PhaseLamp"].append(errorPLamp/repeats)
 
-import json
-with open('comparing_datan1002', 'w') as json_file:
-    json.dump(errors, json_file)
+# import json
+# with open('comparing_datan1003', 'w') as json_file:
+#     json.dump(errors, json_file)
 
 plt.plot(ratios, errors["PhaseMax"],'r')
 plt.plot(ratios, errors["PhaseLift"],'g')
 plt.plot(ratios, errors["BasisPursuit"],'b')
 plt.plot(ratios, errors["PhaseCut"],'y')
 plt.plot(ratios, errors["PhaseLamp"],'k')
-plt.plot(ratios, np.ones(len(ratios)))
 plt.legend(["PhaseMax","PhaseLift","BasisPursuit","PhaseCut","PhaseLamp","baseline"])
 plt.show()
 
