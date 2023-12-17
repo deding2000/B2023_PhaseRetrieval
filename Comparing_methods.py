@@ -41,20 +41,17 @@ def spectral_initializer(A,b,n,m, truncate = True, isScaled = False, optimal = F
     return largest_eigenvector
 
 
-ratios = [1,2,3,4,5,6]
+ratios = [5.25,5.50,5.75,6] #[3.25, 3.50] # [1,1.25,1.50,1.75,2,2.25,2.50,2.75,3] #,3.25,3.5,3.75,4,4.25,4.50,4.75,5] # [3.75,4] [3,4,5]
 n = 100 
 repeats = 10
 errors = {"PhaseMax": [], "PhaseLift": [], "BasisPursuit": [], "PhaseLamp": [], "PhaseCut":[]}
 for ratio in ratios:
-    print(ratio)
+    errorPM = 0
+    errorPL = 0
+    errorBP = 0
+    errorPC = 0
+    errorPLamp = 0
     for i in range(repeats):
-        print(i)
-        errorPM = 0
-        errorPL = 0
-        errorBP = 0
-        errorPC = 0
-        errorPLamp = 0
-
         m = np.round(ratio*n).astype(int)
         Data = GaussData(n,m,True)
         B = np.diag((Data.b))
@@ -63,7 +60,6 @@ for ratio in ratios:
         ### PHASEMAX
         x_PM = PhaseMax(Data.A, Data.b, Data.x0,isComplex =True, verbose=False)
         errorPM += error_cal(x_PM)
-    
 
         ### PHASELIFT
         x_PL = PhaseLift(Data.A, Data.b,verbose=False, isComplex=True)
@@ -79,7 +75,6 @@ for ratio in ratios:
         sol = alpha * xsol
         error = la.norm(Data.x0-sol)**2/la.norm(Data.x0)**2
         errorBP += error
-       
 
         ### PHASECUT
         x_PC= PhaseCut(Data.A, Data.b,verbose=False, isComplex=True)
@@ -100,11 +95,11 @@ for ratio in ratios:
 # with open('comparing_datan1003', 'w') as json_file:
 #     json.dump(errors, json_file)
 
-plt.plot(ratios, errors["PhaseMax"],'r')
-plt.plot(ratios, errors["PhaseLift"],'g')
-plt.plot(ratios, errors["BasisPursuit"],'b')
-plt.plot(ratios, errors["PhaseCut"],'y')
-plt.plot(ratios, errors["PhaseLamp"],'k')
-plt.legend(["PhaseMax","PhaseLift","BasisPursuit","PhaseCut","PhaseLamp","baseline"])
-plt.show()
+# plt.plot(ratios, errors["PhaseMax"],'r')
+# plt.plot(ratios, errors["PhaseLift"],'g')
+# plt.plot(ratios, errors["BasisPursuit"],'b')
+# plt.plot(ratios, errors["PhaseCut"],'y')
+# plt.plot(ratios, errors["PhaseLamp"],'k')
+# plt.legend(["PhaseMax","PhaseLift","BasisPursuit","PhaseCut","PhaseLamp","baseline"])
+# plt.show()
 
