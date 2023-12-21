@@ -41,7 +41,7 @@ def spectral_initializer(A,b,n,m, truncate = True, isScaled = False, optimal = F
     return largest_eigenvector
 
 
-ratios = [5.25,5.50,5.75,6] #[3.25, 3.50] # [1,1.25,1.50,1.75,2,2.25,2.50,2.75,3] #,3.25,3.5,3.75,4,4.25,4.50,4.75,5] # [3.75,4] [3,4,5]
+ratios =  np.arange(1, 4, 0.25) 
 n = 100 
 repeats = 10
 errors = {"PhaseMax": [], "PhaseLift": [], "BasisPursuit": [], "PhaseLamp": [], "PhaseCut":[]}
@@ -55,10 +55,11 @@ for ratio in ratios:
         m = np.round(ratio*n).astype(int)
         Data = GaussData(n,m,True)
         B = np.diag((Data.b))
-        xhat = spectral_initializer(Data.A, Data.b,n,m,  truncate = True, isScaled = False, optimal = False)
 
+        xhat = spectral_initializer(Data.A, Data.b,n,m,  truncate = True, isScaled = False, optimal = False)
+       
         ### PHASEMAX
-        x_PM = PhaseMax(Data.A, Data.b, Data.x0,isComplex =True, verbose=False)
+        x_PM = PhaseMax(Data.A, Data.b, xhat,isComplex =True, verbose=False)
         errorPM += error_cal(x_PM)
 
         ### PHASELIFT
@@ -91,15 +92,11 @@ for ratio in ratios:
     errors["PhaseCut"].append(errorPC/repeats)
     errors["PhaseLamp"].append(errorPLamp/repeats)
 
-# import json
-# with open('comparing_datan1003', 'w') as json_file:
-#     json.dump(errors, json_file)
 
-# plt.plot(ratios, errors["PhaseMax"],'r')
-# plt.plot(ratios, errors["PhaseLift"],'g')
-# plt.plot(ratios, errors["BasisPursuit"],'b')
-# plt.plot(ratios, errors["PhaseCut"],'y')
-# plt.plot(ratios, errors["PhaseLamp"],'k')
-# plt.legend(["PhaseMax","PhaseLift","BasisPursuit","PhaseCut","PhaseLamp","baseline"])
-# plt.show()
-
+plt.plot(ratios, errors["PhaseMax"],'r')
+plt.plot(ratios, errors["PhaseLift"],'g')
+plt.plot(ratios, errors["BasisPursuit"],'b')
+plt.plot(ratios, errors["PhaseCut"],'y')
+plt.plot(ratios, errors["PhaseLamp"],'k')
+plt.legend(["PhaseMax","PhaseLift","BasisPursuit","PhaseCut","PhaseLamp","baseline"])
+plt.show()
